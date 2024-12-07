@@ -6,15 +6,14 @@ import Contact from "./Routes/Contact";
 import Detail from "./Routes/Detail";
 import Favs from "./Routes/Favs";
 import { ContextProvider } from "./Components/utils/global.context";
-import "./index.css";
 
 function App() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col min-h-screen">
       <ContextProvider>
         <BrowserRouter>
           <Navbar/>
-          <main className="flex-1">
+          <main className="flex-grow">
             <Routes>
               <Route path="/" element={<Home/>} />
               <Route path="/home" element={<Home/>} />

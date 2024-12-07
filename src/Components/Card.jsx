@@ -54,7 +54,7 @@ const Card = ({ data }) => {
         onClick={handleFav} 
         className={`favButton ${cardState.isFavorite ? 'active' : ''}`}
       >
-        {cardState.isFavorite ? '❤️ Quitar de favoritos' : '🤍 Agregar a favoritos'}
+        {cardState.isFavorite ? '💖 Quitar de favoritos' : '🤍 Agregar a favoritos'}
       </button>
     </article>
   )

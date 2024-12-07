@@ -1,4 +1,4 @@
-import { createContext, useReducer, useEffect } from "react";
+import { createContext, useReducer, useMemo, useEffect } from "react";
 import PropTypes from 'prop-types';
 
 const initialState = {
@@ -8,7 +8,6 @@ const initialState = {
 };
 
 const reducer = (state, action) => {
-  let newState;
   let newFavs;
   let filteredFavs;
   
@@ -24,21 +23,29 @@ const reducer = (state, action) => {
         data: action.payload 
       };
     case 'ADD_FAV':
+      // Verificar si ya existe en favoritos
+      if (state.favs.some(fav => fav.id === action.payload.id)) {
+        return state;
+      }
       newFavs = [...state.favs, action.payload];
       localStorage.setItem("favs", JSON.stringify(newFavs));
-      newState = {
+      return {
         ...state,
         favs: newFavs
       };
-      return newState;
     case 'REMOVE_FAV':
       filteredFavs = state.favs.filter(fav => fav.id !== action.payload.id);
       localStorage.setItem("favs", JSON.stringify(filteredFavs));
-      newState = {
+      return {
         ...state,
         favs: filteredFavs
       };
-      return newState;
+    case 'RESET_FAVS':
+      localStorage.setItem("favs", JSON.stringify([]));
+      return {
+        ...state,
+        favs: []
+      };
     default:
       return state;
   }
@@ -50,27 +57,36 @@ export const ContextProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    fetch('https://jsonplaceholder.typicode.com/users')
-      .then(res => res.json())
-      .then(data => dispatch({ type: 'SET_DATA', payload: data }))
-      .catch(err => console.error("Error fetching data:", err));
+    const fetchData = async () => {
+      try {
+        const response = await fetch('https://jsonplaceholder.typicode.com/users');
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        const sortedData = data.sort((a, b) => a.id - b.id);
+        dispatch({ type: 'SET_DATA', payload: sortedData });
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      }
+    };
+    fetchData();
   }, []);
 
   useEffect(() => {
     localStorage.setItem("theme", state.theme);
   }, [state.theme]);
 
-  const value = {
+  const contextValue = useMemo(() => ({
     theme: state.theme,
     data: state.data,
     favs: state.favs,
     toggleTheme: () => dispatch({ type: 'TOGGLE_THEME' }),
     addFav: (dentist) => dispatch({ type: 'ADD_FAV', payload: dentist }),
-    removeFav: (dentist) => dispatch({ type: 'REMOVE_FAV', payload: dentist })
-  };
+    removeFav: (dentist) => dispatch({ type: 'REMOVE_FAV', payload: dentist }),
+    resetFavs: () => dispatch({ type: 'RESET_FAVS' })
+  }), [state.theme, state.data, state.favs]);
 
   return (
-    <ContextGlobal.Provider value={value}>
+    <ContextGlobal.Provider value={contextValue}>
       {children}
     </ContextGlobal.Provider>
   );

@@ -1,15 +1,19 @@
-import React from 'react'
+// Contact.jsx
+import { useContext } from 'react'
 import Form from '../Components/Form'
-
-//Este componente debera ser estilado como "dark" o "light" dependiendo del theme del Context
+import { ContextGlobal } from '../Components/utils/global.context'
 
 const Contact = () => {
+  const { theme } = useContext(ContextGlobal);
+
   return (
-    <div>
-      <h2>Want to know more?</h2>
-      <p>Send us your questions and we will contact you</p>
-      <Form/>
-    </div>
+    <main className={`contact-container ${theme}`}>
+      <div className="contact-content">
+        <h1>Necesita mas informacion?</h1>
+        <p>Envienos sus consultas y un ejecutivo le contactara</p>
+        <Form/>
+      </div>
+    </main>
   )
 }
 
