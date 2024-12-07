@@ -1,22 +1,71 @@
-import React from "react";
+import { useContext, useReducer } from "react"
+import { Link } from "react-router-dom"
+import PropTypes from 'prop-types'
+import { ContextGlobal } from './utils/global.context'
 
+const cardReducer = (state, action) => {
+  switch (action.type) {
+    case "TOGGLE_FAV":
+      return { ...state, isFavorite: !state.isFavorite }
+    default:
+      return state
+  }
+}
 
-const Card = ({ name, username, id }) => {
+const Card = ({ data }) => {
+  const { name, username, id } = data
+  const { theme } = useContext(ContextGlobal)
+  
+  const initialState = {
+    isFavorite: JSON.parse(localStorage.getItem("favs"))?.some(fav => fav.id === id) || false
+  }
+  
+  const [cardState, dispatch] = useReducer(cardReducer, initialState)
 
-  const addFav = ()=>{
-    // Aqui iria la logica para agregar la Card en el localStorage
+  const handleFav = () => {
+    const favs = JSON.parse(localStorage.getItem("favs")) || []
+    
+    if (!cardState.isFavorite) {
+      const newFavs = [...favs, { name, username, id }]
+      localStorage.setItem("favs", JSON.stringify(newFavs))
+    } else {
+      const filteredFavs = favs.filter(fav => fav.id !== id)
+      localStorage.setItem("favs", JSON.stringify(filteredFavs))
+    }
+    
+    dispatch({ type: "TOGGLE_FAV" })
   }
 
   return (
-    <div className="card">
-        {/* En cada card deberan mostrar en name - username y el id */}
+    <article className={`card ${theme}`}>
+      <Link to={`/dentist/${id}`} className="card-link">
+        <img 
+          src="/images/doctor.jpg" 
+          alt={`Dr. ${name}`} 
+          className="card-img"
+        />
+        <div className="card-body">
+          <h3>{name}</h3>
+          <p>@{username}</p>
+          <p>ID: {id}</p>
+        </div>
+      </Link>
+      <button 
+        onClick={handleFav} 
+        className={`favButton ${cardState.isFavorite ? 'active' : ''}`}
+      >
+        {cardState.isFavorite ? '❤️ Quitar de favoritos' : '🤍 Agregar a favoritos'}
+      </button>
+    </article>
+  )
+}
 
-        {/* No debes olvidar que la Card a su vez servira como Link hacia la pagina de detalle */}
+Card.propTypes = {
+  data: PropTypes.shape({
+    name: PropTypes.string.isRequired,
+    username: PropTypes.string.isRequired,
+    id: PropTypes.number.isRequired
+  }).isRequired
+}
 
-        {/* Ademas deberan integrar la logica para guardar cada Card en el localStorage */}
-        <button onClick={addFav} className="favButton">Add fav</button>
-    </div>
-  );
-};
-
-export default Card;
+export default Card
